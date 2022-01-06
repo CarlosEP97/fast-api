@@ -4,7 +4,7 @@ from typing import Optional,List
 from pydantic import BaseModel
 #fastAPI
 from fastapi import FastAPI # Import FastAPI.
-from fastapi import Body,Query
+from fastapi import Body,Query,Path
 
 app = FastAPI() # Create an app instance.
 
@@ -34,7 +34,33 @@ def create_person(person: Person = Body(...)):
 
 @app.get('/person/detail')
 def show_person(
-        name: Optional[str] = Query(None, min_length=1, max_length=50), #condiciones del QUERY
-        age: int = Query(...,gt=17)
+        name: Optional[str] = Query(
+            None,
+            min_length=1,
+            max_length=50,
+            title='Person Name',
+            description='this is person name,its between 1 and 50 char'
+        ), #condiciones del QUERY
+        age: int = Query(
+            ...,
+            gt=17,
+            title='Person Age',
+            description='this is the person age,its require'
+        )
 ):
     return {name: age}
+
+#Validaciones path parameters
+
+@app.get('/person/detail/{person_id}')
+def show_person (
+        person_id:int = Path(
+            ...,
+            gt=0,
+            title='Person Id',
+            description='This is the user Id,for all the user in ascend mode'
+        )
+):
+    return {person_id:'it exist'}
+
+
