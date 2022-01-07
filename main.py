@@ -1,7 +1,9 @@
 #Python
 from typing import Optional,List
+from enum import Enum
 #Pydantic
 from pydantic import BaseModel
+from pydantic import Field
 #fastAPI
 from fastapi import FastAPI # Import FastAPI.
 from fastapi import Body,Query,Path
@@ -10,17 +12,24 @@ app = FastAPI() # Create an app instance.
 
 #models
 
+class HairColor(Enum):
+    white = 'white'
+    black = 'black'
+    brown = 'brown'
+    yellow = 'yellow'
+    red = 'red'
+
 class Location(BaseModel):
     city : str
     state : str
     country : str
 
 class Person(BaseModel):
-    first_name: str
-    last_name: str
-    age: int
-    hair_color: Optional[str] = None
-    is_married: Optional[bool] = None
+    first_name: str = Field(...,min_length=1,max_length=50)
+    last_name: str = Field(...,min_length=1,max_length=50)
+    age: int = Field(...,gt=0,le=100)
+    hair_color: Optional[HairColor] = Field(default=None)
+    is_married: Optional[bool] = Field(default=None)
 
 
 
@@ -40,7 +49,7 @@ def create_person(person: Person = Body(...)):
 @app.get('/person/detail')
 def show_person(
         name: Optional[str] = Query(
-            None,
+            default=None,
             min_length=1,
             max_length=50,
             title='Person Name',
@@ -86,3 +95,5 @@ def update_person(
     return results
 
 #Request Body validarions
+
+#Se hace en la definicion del modelo arriba
