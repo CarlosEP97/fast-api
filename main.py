@@ -76,13 +76,15 @@ def show_person(
             min_length=1,
             max_length=50,
             title='Person Name',
-            description='this is person name,its between 1 and 50 char'
+            description='this is person name,its between 1 and 50 char',
+            example="Rocío"
         ), #condiciones del QUERY
         age: int = Query(
             ...,
             gt=17,
             title='Person Age',
-            description='this is the person age,its require'
+            description='this is the person age,its require',
+            example=25
         )
 ):
     return {name: age}
@@ -95,7 +97,8 @@ def show_person (
             ...,
             gt=0,
             title='Person Id',
-            description='This is the user Id,for all the user in ascend mode'
+            description='This is the user Id,for all the user in ascend mode',
+            example = 123
         )
 ):
     return {person_id:'it exist'}
