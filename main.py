@@ -39,6 +39,7 @@ class Person(BaseModel):
     url: HttpUrl
     hair_color: Optional[HairColor] = Field(default=None)
     is_married: Optional[bool] = Field(default=None)
+    password : str = Field(...,min_length=8)
 
     # class Config:
     #     schema_extra = {
@@ -50,6 +51,17 @@ class Person(BaseModel):
     #             "is_married": False
     #         }
     #     }  data for autoComplete
+
+class PersonOut(BaseModel):
+    first_name: str = Field(..., min_length=1, max_length=50)
+    last_name: str = Field(..., min_length=1, max_length=50)
+    age: int = Field(..., gt=0, le=100)
+    email: str = EmailStr(...)
+    url: HttpUrl
+    hair_color: Optional[HairColor] = Field(default=None)
+    is_married: Optional[bool] = Field(default=None)
+
+
 
 class Net_info(BaseModel):
     email: str = EmailStr(...)
@@ -63,7 +75,7 @@ def home():
 
 #request and response
 
-@app.post('/person/new')
+@app.post('/person/new',response_model=PersonOut)
 def create_person(person: Person = Body(...)):
     return person
 
