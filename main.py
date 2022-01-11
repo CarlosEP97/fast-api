@@ -1,5 +1,5 @@
 #Python
-from typing import Optional,List,Dict
+from typing import Optional
 from enum import Enum
 #Pydantic
 from pydantic import BaseModel
@@ -7,6 +7,7 @@ from pydantic import Field
 from pydantic import EmailStr,HttpUrl
 #fastAPI
 from fastapi import FastAPI # Import FastAPI.
+from fastapi import status
 from fastapi import Body,Query,Path
 
 app = FastAPI() # Create an app instance.
@@ -26,20 +27,15 @@ class city(Enum):
     Bucaramanga = 'bucaramanga'
     Barranquilla = 'barranquilla'
 
-class Location(BaseModel):
-    city: str = Field(..., min_length=1, max_length=50)
-    state: str = Field(..., min_length=1, max_length=50)
-    country: str = Field(..., min_length=1, max_length=50)
-
-class Person(BaseModel):
+class PersonBase(BaseModel):
     first_name: str = Field(...,min_length=1,max_length=50)
     last_name: str = Field(...,min_length=1,max_length=50)
     age: int = Field(...,gt=0,le=100)
-    email: str = EmailStr(...)
-    url: HttpUrl
+    # email: str = EmailStr(...)
+    # url: HttpUrl
     hair_color: Optional[HairColor] = Field(default=None)
     is_married: Optional[bool] = Field(default=None)
-    password : str = Field(...,min_length=8)
+
 
     # class Config:
     #     schema_extra = {
@@ -52,15 +48,18 @@ class Person(BaseModel):
     #         }
     #     }  data for autoComplete
 
-class PersonOut(BaseModel):
-    first_name: str = Field(..., min_length=1, max_length=50)
-    last_name: str = Field(..., min_length=1, max_length=50)
-    age: int = Field(..., gt=0, le=100)
-    email: str = EmailStr(...)
-    url: HttpUrl
-    hair_color: Optional[HairColor] = Field(default=None)
-    is_married: Optional[bool] = Field(default=None)
 
+
+class Location(BaseModel):
+    city: str = Field(..., min_length=1, max_length=50)
+    state: str = Field(..., min_length=1, max_length=50)
+    country: str = Field(..., min_length=1, max_length=50)
+
+class Person(PersonBase):
+    password: str = Field(..., min_length=8)
+
+class PersonOut(PersonBase):
+    pass
 
 
 class Net_info(BaseModel):
@@ -68,20 +67,21 @@ class Net_info(BaseModel):
     url: HttpUrl
 
 
-@app.get('/')
+@app.get('/',status_code=status.HTTP_200_OK)
 def home():
     return {'message': 'Hello World'}
 
 
 #request and response
 
-@app.post('/person/new',response_model=PersonOut)
+#response_model_exclude= 'password' tambien sirve para excluir ciertas respuestas del modelo
+@app.post('/person/new',response_model=PersonOut,status_code=status.HTTP_201_CREATED)
 def create_person(person: Person = Body(...)):
     return person
 
 # Validaciones: Query Parameters
 
-@app.get('/person/detail')
+@app.get('/person/detail',status_code=status.HTTP_200_OK)
 def show_person(
         name: Optional[str] = Query(
             default=None,
@@ -96,7 +96,7 @@ def show_person(
             gt=17,
             title='Person Age',
             description='this is the person age,its require',
-            example=25
+            # example=25
         )
 ):
     return {name: age}
@@ -110,7 +110,7 @@ def show_person (
             gt=0,
             title='Person Id',
             description='This is the user Id,for all the user in ascend mode',
-            example = 123
+            # example = 123
         )
 ):
     return {person_id:'it exist'}
@@ -131,6 +131,20 @@ def update_person(
     results = person.dict()
     results.update(location.dict())
     return results
+
+@app.put('/person/{city}')
+def update_city(
+        city: int = Path(
+            ...,
+            title='city ID',
+            description='this is the city ID',
+            gt=0
+        ),
+        location: Location = Body(...)
+):
+    result = location.dict()
+    return result
+
 
 
 #Request Body validarions
